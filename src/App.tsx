@@ -1,6 +1,7 @@
 // Authentication and user profiles will be implemented in Phase 2 using Supabase Auth.
 import { useState, useCallback } from 'react';
 import IntentCapture from './components/IntentCapture';
+import FollowUpQuestions from './components/FollowUpQuestions';
 import BundleResults from './components/BundleResults';
 import SavedBundles from './components/SavedBundles';
 import IntentHistory from './components/IntentHistory';
@@ -11,6 +12,14 @@ import type { ParsedIntent } from './types';
 
 function App() {
   const [activeTab, setActiveTab] = useState('home');
+  const [pendingSearch, setPendingSearch] = useState<{
+    text: string;
+    occasion?: string;
+    vibes?: string[];
+    budget?: [number, number];
+  } | null>(null);
+  const [showFollowUp, setShowFollowUp] = useState(false);
+
   const {
     bundles, currentIntent, savedBundles, intentHistory,
     lastSearch, isLoading, usedAI,
@@ -23,12 +32,31 @@ function App() {
     vibes?: string[],
     budget?: [number, number]
   ) => {
+    // Store the intent and show follow-up questions
+    setPendingSearch({ text, occasion, vibes, budget });
+    setShowFollowUp(true);
     setActiveTab('bundles');
-    await search(text, occasion, vibes, budget);
-  }, [search]);
+  }, []);
+
+  const handleFollowUpComplete = useCallback(async (answers: Record<string, string>) => {
+    setShowFollowUp(false);
+    if (pendingSearch) {
+      // Enrich the search text with follow-up answers
+      const enriched = pendingSearch.text + '. ' + Object.values(answers).join(', ');
+      await search(enriched, pendingSearch.occasion, pendingSearch.vibes, pendingSearch.budget);
+    }
+  }, [pendingSearch, search]);
+
+  const handleFollowUpSkip = useCallback(async () => {
+    setShowFollowUp(false);
+    if (pendingSearch) {
+      await search(pendingSearch.text, pendingSearch.occasion, pendingSearch.vibes, pendingSearch.budget);
+    }
+  }, [pendingSearch, search]);
 
   const handleRerun = useCallback(async (intent: ParsedIntent) => {
     setActiveTab('bundles');
+    setShowFollowUp(false);
     await search(intent.raw, intent.occasion, intent.vibes, [intent.budgetMin, intent.budgetMax]);
   }, [search]);
 
@@ -50,7 +78,15 @@ function App() {
           <IntentCapture onSearch={handleSearch} lastSearch={lastSearch} />
         )}
         {activeTab === 'bundles' && (
-          isLoading ? <LoadingBundles /> : (
+          showFollowUp && pendingSearch?.occasion ? (
+            <FollowUpQuestions
+              occasion={pendingSearch.occasion}
+              onComplete={handleFollowUpComplete}
+              onSkip={handleFollowUpSkip}
+            />
+          ) : isLoading ? (
+            <LoadingBundles />
+          ) : (
             <BundleResults
               bundles={bundles}
               intent={currentIntent}
