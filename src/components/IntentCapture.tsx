@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef } from 'react';
-import type { ParsedIntent } from '../types';
 
 const OCCASIONS = [
   { emoji: '🎁', label: 'Gift', value: 'gift' },
