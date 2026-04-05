@@ -1,0 +1,68 @@
+@import "tailwindcss";
+
+@theme {
+  --color-cream: #FAF8F5;
+  --color-coral: #E8846B;
+  --color-coral-light: #F2A892;
+  --color-coral-soft: #FFF0EB;
+  --color-sage: #8BAF9C;
+  --color-amber: #D4A853;
+  --color-lavender: #A78BDB;
+  --color-text: #1E1E2D;
+  --color-text-secondary: #6B6B80;
+  --color-text-tertiary: #9B9BAE;
+  --color-border: #E8E4DE;
+  --font-family-nunito: 'Nunito', sans-serif;
+}
+
+@font-face {
+  font-family: 'Nunito';
+  font-style: normal;
+  font-weight: 400 800;
+  font-display: swap;
+  src: url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&display=swap');
+}
+
+* { font-family: 'Nunito', sans-serif; }
+
+body {
+  background-color: #FAF8F5;
+  color: #1E1E2D;
+  margin: 0;
+  min-height: 100vh;
+}
+
+#root {
+  max-width: 430px;
+  margin: 0 auto;
+  min-height: 100vh;
+  position: relative;
+  background: white;
+  box-shadow: 0 0 40px rgba(0,0,0,0.08);
+}
+
+/* Animations */
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+@keyframes spin-slow {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+@keyframes slide-up {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.animate-float { animation: float 3s ease-in-out infinite; }
+.animate-spin-slow { animation: spin-slow 3s linear infinite; }
+.animate-pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }
+.animate-slide-up { animation: slide-up 0.4s ease-out; }
