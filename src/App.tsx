@@ -6,10 +6,14 @@ import SavedBundles from './components/SavedBundles';
 import IntentHistory from './components/IntentHistory';
 import LoadingBundles from './components/LoadingBundles';
 import BottomNav from './components/BottomNav';
+import AuthScreen from './components/AuthScreen';
 import { useShopMate } from './hooks/useShopMate';
+import { useAuth } from './hooks/useAuth';
 import type { ParsedIntent } from './types';
 
 function App() {
+  const { user, loading: authLoading, error: authError, signIn, signUp, signInWithGoogle, signOut, clearError } = useAuth();
+
   const [activeTab, setActiveTab] = useState('home');
   const [pendingSearch, setPendingSearch] = useState<{
     text: string;
@@ -31,7 +35,6 @@ function App() {
     vibes?: string[],
     budget?: [number, number]
   ) => {
-    // FIX: Default to 'casual' if no occasion selected (fixes text-only search)
     const resolvedOccasion = occasion || 'casual';
     setPendingSearch({ text, occasion: resolvedOccasion, vibes, budget });
     setShowFollowUp(true);
@@ -59,6 +62,34 @@ function App() {
     await search(intent.raw, intent.occasion, intent.vibes, [intent.budgetMin, intent.budgetMax]);
   }, [search]);
 
+  // Auth loading
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-bg-primary bg-gradient-mesh">
+        <div className="text-center animate-pulse-glow">
+          <h1 className="text-2xl font-bold mb-2" style={{ fontFamily: "'Space Grotesk'" }}>
+            <span className="text-gradient">Shop</span><span className="text-text">Mate</span>
+          </h1>
+          <p className="text-text-tertiary text-sm">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Not logged in → show auth screen
+  if (!user) {
+    return (
+      <AuthScreen
+        onSignIn={signIn}
+        onSignUp={signUp}
+        onGoogleSignIn={signInWithGoogle}
+        error={authError}
+        clearError={clearError}
+      />
+    );
+  }
+
+  // Logged in → show app
   return (
     <div className="min-h-screen bg-bg-primary bg-gradient-mesh">
       {/* Header */}
@@ -67,7 +98,20 @@ function App() {
           <h1 className="text-xl font-bold tracking-tight" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
             <span className="text-gradient">Shop</span><span className="text-text">Mate</span>
           </h1>
-          <span className="text-[10px] text-text-tertiary font-medium tracking-wider uppercase">by Suhas</span>
+          <div className="flex items-center gap-3">
+            <span className="text-[10px] text-text-tertiary font-medium truncate max-w-[120px]">
+              {user.email}
+            </span>
+            <button
+              onClick={signOut}
+              className="w-8 h-8 glass-card rounded-full flex items-center justify-center hover:bg-bg-card-hover transition-all"
+              title="Sign out"
+            >
+              <svg width="14" height="14" fill="none" stroke="#A1A1B5" strokeWidth="2" viewBox="0 0 24 24">
+                <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </button>
+          </div>
         </div>
       </header>
 
