@@ -1,49 +1,4 @@
-import catalog from '../data/catalog.json';
-import type { Product, Bundle, ParsedIntent } from '../types';
-
-const products = catalog as Product[];
-
-const BUNDLE_NAMES: Record<string, string[]> = {
-  travel: ['Beachy Boho', 'Wanderlust Casual', 'Sunset Traveler'],
-  party: ['Glam Night', 'Party Starter', 'Bold & Beautiful'],
-  wedding: ['Ethnic Elegance', 'Festive Charm', 'Royal Desi'],
-  work: ['Office Boss', 'Corporate Chic', 'Smart Minimal'],
-  gift: ['Thoughtful Pick', 'Gift-Worthy', 'The Perfect Surprise'],
-  casual: ['Chill Vibes', 'Everyday Cool', 'Effortless Style'],
-};
-
-const DESCRIPTIONS: Record<string, string[]> = {
-  travel: [
-    'Perfect for sunsets and street food walks 🌅',
-    'Pack light, look amazing — this bundle travels well ✈️',
-    'Breezy fits for your next adventure 🏖️',
-  ],
-  party: [
-    'All eyes on you — guaranteed 💃',
-    'This bundle screams main character energy ✨',
-    'Dance-floor ready, no questions asked 🔥',
-  ],
-  wedding: [
-    'Elegant and oh-so-desi — perfect for the occasion 💍',
-    'Guest outfit sorted, compliments guaranteed 🌸',
-    'Traditional meets trendy in all the right ways ✨',
-  ],
-  work: [
-    'Boss energy, Monday to Friday 💼',
-    'Smart, sharp, and subtly stylish 🎯',
-    'Your new go-to office look, sorted 👔',
-  ],
-  gift: [
-    'They will love this — trust us 🎁',
-    'Thoughtful, stylish, and within budget 💛',
-    'A gift that says you actually get them ✨',
-  ],
-  casual: [
-    'Easy, breezy, and so you 🌿',
-    'No effort needed — just throw it on and go ☀️',
-    'Comfort meets style, every single day 💫',
-  ],
-};
+import type { Bundle, ParsedIntent } from '../types';
 
 export function parseIntent(
   raw: string,
@@ -52,7 +7,7 @@ export function parseIntent(
   budget?: [number, number]
 ): ParsedIntent {
   const text = raw.toLowerCase();
-  
+
   let detectedOccasion = occasion || '';
   if (!detectedOccasion) {
     if (text.includes('goa') || text.includes('trip') || text.includes('travel') || text.includes('vacation')) detectedOccasion = 'travel';
@@ -76,7 +31,7 @@ export function parseIntent(
   const budgetMatch = text.match(/(\d+)\s*k/i);
   const budgetNum = budgetMatch ? parseInt(budgetMatch[1]) * 1000 : null;
   const priceMatch = text.match(/(\d{3,5})/);
-  
+
   return {
     raw,
     occasion: detectedOccasion,
@@ -87,68 +42,19 @@ export function parseIntent(
   };
 }
 
-export function generateBundles(intent: ParsedIntent): Bundle[] {
-  const { occasion, vibes, budgetMax } = intent;
-  
-  // Score products based on relevance
-  const scored = products.map(p => {
-    let score = 0;
-    if (p.occasion.includes(occasion)) score += 3;
-    vibes.forEach(v => { if (p.tags.includes(v)) score += 2; });
-    if (p.price <= budgetMax * 0.4) score += 1;
-    score += (p.rating - 3.5) * 2;
-    return { product: p, score };
-  }).sort((a, b) => b.score - a.score);
-
-  const names = BUNDLE_NAMES[occasion] || BUNDLE_NAMES.casual;
-  const descs = DESCRIPTIONS[occasion] || DESCRIPTIONS.casual;
-  const bundles: Bundle[] = [];
-  const used = new Set<string>();
-
-  for (let i = 0; i < 3; i++) {
-    const items: Product[] = [];
-    const categories = ['tops', 'bottoms', 'footwear', 'accessories'];
-    
-    for (const cat of categories) {
-      const pick = scored.find(s => 
-        s.product.category === cat && !used.has(s.product.id)
-      );
-      if (pick) {
-        items.push(pick.product);
-        used.add(pick.product.id);
-      }
-    }
-
-    // Try to add a dress if no top+bottom combo
-    if (items.length < 3) {
-      const dress = scored.find(s => 
-        s.product.category === 'dresses' && !used.has(s.product.id)
-      );
-      if (dress) {
-        items.push(dress.product);
-        used.add(dress.product.id);
-      }
-    }
-
-    const totalPrice = items.reduce((s, p) => s + p.price, 0);
-    const matchScore = Math.min(99, 85 + Math.floor(Math.random() * 12));
-
-    bundles.push({
-      id: `bundle-${Date.now()}-${i}`,
-      bundle_name: names[i] || `Bundle ${i + 1}`,
-      items,
-      total_price: totalPrice,
-      description: descs[i] || 'A curated bundle just for you ✨',
-      match_score: matchScore,
-      why_picked: `Matches your ${vibes[0] || 'chill'} vibe • ${items[0]?.rating || 4.5}★ avg rating • ${occasion} ready`,
-    });
+function getProfile(): Record<string, string> {
+  try {
+    const stored = localStorage.getItem('shopmate_profile');
+    return stored ? JSON.parse(stored) : {};
+  } catch {
+    return {};
   }
-
-  return bundles;
 }
 
 export async function generateAIBundles(intent: ParsedIntent): Promise<Bundle[] | null> {
   try {
+    const profile = getProfile();
+
     const res = await fetch('/api/generate-bundles', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -158,23 +64,37 @@ export async function generateAIBundles(intent: ParsedIntent): Promise<Bundle[] 
         vibes: intent.vibes,
         budget_min: intent.budgetMin,
         budget_max: intent.budgetMax,
-        catalog: products,
+        profile,
       }),
     });
 
     const data = await res.json();
-    if (data.fallback || data.error || !data.bundles) return null;
+    if (data.fallback || data.error || !data.bundles) {
+      console.warn('AI bundle error:', data.error);
+      return null;
+    }
 
     return data.bundles.map((b: any, i: number) => ({
       id: `ai-bundle-${Date.now()}-${i}`,
       bundle_name: b.bundle_name,
-      items: b.items,
+      items: (b.items || []).map((item: any, j: number) => ({
+        id: item.id || `item-${i}-${j}`,
+        name: item.name || item.title || 'Product',
+        category: item.category || 'unknown',
+        price: item.price || 0,
+        image: item.image || item.imageUrl || '',
+        link: item.link || '',
+        source: item.source || 'Online Store',
+        rating: item.rating || 0,
+        delivery: item.delivery || '',
+      })),
       total_price: b.total_price,
       description: b.description,
       match_score: b.match_score,
       why_picked: b.why_picked,
     }));
-  } catch {
+  } catch (err) {
+    console.error('generateAIBundles error:', err);
     return null;
   }
 }

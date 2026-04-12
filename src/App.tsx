@@ -1,4 +1,3 @@
-// Authentication and user profiles will be implemented in Phase 2 using Supabase Auth.
 import { useState, useCallback } from 'react';
 import IntentCapture from './components/IntentCapture';
 import FollowUpQuestions from './components/FollowUpQuestions';
@@ -32,8 +31,9 @@ function App() {
     vibes?: string[],
     budget?: [number, number]
   ) => {
-    // Store the intent and show follow-up questions
-    setPendingSearch({ text, occasion, vibes, budget });
+    // FIX: Default to 'casual' if no occasion selected (fixes text-only search)
+    const resolvedOccasion = occasion || 'casual';
+    setPendingSearch({ text, occasion: resolvedOccasion, vibes, budget });
     setShowFollowUp(true);
     setActiveTab('bundles');
   }, []);
@@ -41,7 +41,6 @@ function App() {
   const handleFollowUpComplete = useCallback(async (answers: Record<string, string>) => {
     setShowFollowUp(false);
     if (pendingSearch) {
-      // Enrich the search text with follow-up answers
       const enriched = pendingSearch.text + '. ' + Object.values(answers).join(', ');
       await search(enriched, pendingSearch.occasion, pendingSearch.vibes, pendingSearch.budget);
     }
@@ -61,14 +60,14 @@ function App() {
   }, [search]);
 
   return (
-    <div className="min-h-screen bg-cream">
+    <div className="min-h-screen bg-bg-primary bg-gradient-mesh">
       {/* Header */}
-      <header className="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-border px-5 py-3.5">
+      <header className="sticky top-0 z-30 glass border-b border-glass-border px-5 py-3.5">
         <div className="flex items-center justify-between">
-          <h1 className="text-xl font-extrabold tracking-tight">
-            Shop<span className="text-coral">Mate</span>
+          <h1 className="text-xl font-bold tracking-tight" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+            <span className="text-gradient">Shop</span><span className="text-text">Mate</span>
           </h1>
-          <span className="text-xs text-text-tertiary font-semibold">by Suhas</span>
+          <span className="text-[10px] text-text-tertiary font-medium tracking-wider uppercase">by Suhas</span>
         </div>
       </header>
 

@@ -1,35 +1,51 @@
 @import "tailwindcss";
 
 @theme {
-  --color-cream: #FAF8F5;
-  --color-coral: #E8846B;
-  --color-coral-light: #F2A892;
-  --color-coral-soft: #FFF0EB;
-  --color-sage: #8BAF9C;
-  --color-amber: #D4A853;
-  --color-lavender: #A78BDB;
-  --color-text: #1E1E2D;
-  --color-text-secondary: #6B6B80;
-  --color-text-tertiary: #9B9BAE;
-  --color-border: #E8E4DE;
-  --font-family-nunito: 'Nunito', sans-serif;
+  /* Dark Glassmorphism Palette */
+  --color-bg-primary: #0F0F1A;
+  --color-bg-secondary: #161625;
+  --color-bg-card: rgba(255, 255, 255, 0.06);
+  --color-bg-card-hover: rgba(255, 255, 255, 0.1);
+  --color-glass: rgba(255, 255, 255, 0.08);
+  --color-glass-border: rgba(255, 255, 255, 0.12);
+  --color-glass-strong: rgba(255, 255, 255, 0.15);
+
+  /* Accent Colors */
+  --color-coral: #FF6B6B;
+  --color-coral-light: #FF8E8E;
+  --color-coral-soft: rgba(255, 107, 107, 0.15);
+  --color-purple: #7C5CFC;
+  --color-purple-light: #9B7FFF;
+  --color-purple-soft: rgba(124, 92, 252, 0.15);
+  --color-sage: #4ADE80;
+  --color-sage-soft: rgba(74, 222, 128, 0.15);
+  --color-amber: #FBBF24;
+  --color-amber-soft: rgba(251, 191, 36, 0.15);
+  --color-pink: #FF6B9D;
+  --color-cyan: #22D3EE;
+
+  /* Text */
+  --color-text: #F5F5F7;
+  --color-text-secondary: #A1A1B5;
+  --color-text-tertiary: #6B6B80;
+  --color-border: rgba(255, 255, 255, 0.08);
+
+  /* Font */
+  --font-family-inter: 'Inter', sans-serif;
+  --font-family-space: 'Space Grotesk', sans-serif;
 }
 
-@font-face {
-  font-family: 'Nunito';
-  font-style: normal;
-  font-weight: 400 800;
-  font-display: swap;
-  src: url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&display=swap');
+* {
+  font-family: 'Inter', sans-serif;
+  -webkit-tap-highlight-color: transparent;
 }
-
-* { font-family: 'Nunito', sans-serif; }
 
 body {
-  background-color: #FAF8F5;
-  color: #1E1E2D;
+  background: #0F0F1A;
+  color: #F5F5F7;
   margin: 0;
   min-height: 100vh;
+  overflow-x: hidden;
 }
 
 #root {
@@ -37,14 +53,52 @@ body {
   margin: 0 auto;
   min-height: 100vh;
   position: relative;
-  background: white;
-  box-shadow: 0 0 40px rgba(0,0,0,0.08);
+  background: #0F0F1A;
 }
 
-/* Animations */
+/* === GLASSMORPHISM UTILITIES === */
+.glass {
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.glass-strong {
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+}
+
+/* === GRADIENT BACKGROUNDS === */
+.bg-gradient-mesh {
+  background:
+    radial-gradient(ellipse at 20% 50%, rgba(124, 92, 252, 0.15) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 20%, rgba(255, 107, 107, 0.1) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 80%, rgba(34, 211, 238, 0.08) 0%, transparent 50%),
+    #0F0F1A;
+}
+
+.bg-gradient-hero {
+  background:
+    radial-gradient(ellipse at 30% 0%, rgba(124, 92, 252, 0.25) 0%, transparent 60%),
+    radial-gradient(ellipse at 70% 100%, rgba(255, 107, 107, 0.15) 0%, transparent 60%),
+    #0F0F1A;
+}
+
+/* === ANIMATIONS === */
 @keyframes float {
   0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-6px); }
+  50% { transform: translateY(-8px); }
 }
 
 @keyframes spin-slow {
@@ -53,16 +107,105 @@ body {
 }
 
 @keyframes pulse-glow {
-  0%, 100% { opacity: 0.6; }
+  0%, 100% { opacity: 0.5; }
   50% { opacity: 1; }
 }
 
 @keyframes slide-up {
-  from { transform: translateY(20px); opacity: 0; }
+  from { transform: translateY(24px); opacity: 0; }
   to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes glow-pulse {
+  0%, 100% { box-shadow: 0 0 20px rgba(124, 92, 252, 0.3); }
+  50% { box-shadow: 0 0 40px rgba(124, 92, 252, 0.6); }
+}
+
+@keyframes gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scale-in {
+  from { transform: scale(0.9); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+@keyframes scan-line {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
 }
 
 .animate-float { animation: float 3s ease-in-out infinite; }
 .animate-spin-slow { animation: spin-slow 3s linear infinite; }
 .animate-pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }
-.animate-slide-up { animation: slide-up 0.4s ease-out; }
+.animate-slide-up { animation: slide-up 0.4s ease-out forwards; }
+.animate-shimmer {
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+}
+.animate-glow { animation: glow-pulse 2s ease-in-out infinite; }
+.animate-gradient {
+  background-size: 200% 200%;
+  animation: gradient-shift 3s ease infinite;
+}
+.animate-fade-in { animation: fade-in 0.3s ease-out; }
+.animate-scale-in { animation: scale-in 0.3s ease-out; }
+
+/* === CUSTOM SCROLLBAR === */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 4px; }
+
+/* === CUSTOM RANGE SLIDER === */
+input[type="range"] {
+  -webkit-appearance: none;
+  height: 6px;
+  background: linear-gradient(to right, #7C5CFC, #FF6B6B);
+  border-radius: 4px;
+  outline: none;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 20px;
+  height: 20px;
+  background: white;
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 0 10px rgba(124, 92, 252, 0.5);
+}
+
+/* === GRADIENT TEXT === */
+.text-gradient {
+  background: linear-gradient(135deg, #FF6B6B, #7C5CFC);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.text-gradient-purple {
+  background: linear-gradient(135deg, #7C5CFC, #22D3EE);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* === LINE CLAMP === */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}

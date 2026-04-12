@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import type { Bundle, SavedBundle, ParsedIntent } from '../types';
-import { parseIntent, generateBundles, generateAIBundles } from '../services/aiService';
+import { parseIntent, generateAIBundles } from '../services/aiService';
 
 const STORAGE_KEYS = {
   savedBundles: 'shopmate_saved_bundles',
@@ -33,6 +33,7 @@ export function useShopMate() {
   );
   const [isLoading, setIsLoading] = useState(false);
   const [usedAI, setUsedAI] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const search = useCallback(async (
     raw: string,
@@ -44,19 +45,22 @@ export function useShopMate() {
     setCurrentIntent(intent);
     setIsLoading(true);
     setUsedAI(false);
+    setError(null);
 
-    // Try AI first, fall back to local
-    let results: Bundle[] | null = null;
     try {
-      results = await generateAIBundles(intent);
-      if (results) setUsedAI(true);
-    } catch { /* fallback */ }
-
-    if (!results) {
-      results = generateBundles(intent);
+      const results = await generateAIBundles(intent);
+      if (results && results.length > 0) {
+        setBundles(results);
+        setUsedAI(true);
+      } else {
+        setBundles([]);
+        setError('No matching products found. Try adjusting your search or budget.');
+      }
+    } catch {
+      setBundles([]);
+      setError('Something went wrong. Please try again.');
     }
 
-    setBundles(results);
     setIsLoading(false);
 
     // Save to history
@@ -67,8 +71,6 @@ export function useShopMate() {
     const ls = { text: raw, occasion: intent.occasion };
     setLastSearch(ls);
     saveToStorage(STORAGE_KEYS.lastSearch, ls);
-
-    return results;
   }, [intentHistory]);
 
   const saveBundle = useCallback((bundle: Bundle) => {
@@ -88,12 +90,12 @@ export function useShopMate() {
     saveToStorage(STORAGE_KEYS.savedBundles, updated);
   }, [savedBundles]);
 
-  const isSaved = useCallback((bundleId: string) => 
+  const isSaved = useCallback((bundleId: string) =>
     savedBundles.some(b => b.id === bundleId), [savedBundles]);
 
   return {
     bundles, currentIntent, savedBundles, intentHistory,
-    lastSearch, isLoading, usedAI,
+    lastSearch, isLoading, usedAI, error,
     search, saveBundle, unsaveBundle, isSaved,
   };
 }

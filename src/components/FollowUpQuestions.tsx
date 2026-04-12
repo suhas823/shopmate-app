@@ -6,7 +6,6 @@ interface FollowUpQuestion {
   options: string[];
 }
 
-// Universal questions asked for every search
 const UNIVERSAL_QUESTIONS: FollowUpQuestion[] = [
   {
     id: 'gender',
@@ -25,7 +24,6 @@ const UNIVERSAL_QUESTIONS: FollowUpQuestion[] = [
   },
 ];
 
-// Occasion-specific questions
 const OCCASION_QUESTIONS: Record<string, FollowUpQuestion[]> = {
   travel: [
     { id: 'destination', question: "Where are you headed? 🗺️", options: ["Beach 🏖️", "Mountains ⛰️", "City trip 🏙️", "Backpacking 🎒"] },
@@ -57,7 +55,6 @@ const OCCASION_QUESTIONS: Record<string, FollowUpQuestion[]> = {
   ],
 };
 
-// Style & material preferences (asked for all)
 const STYLE_QUESTIONS: FollowUpQuestion[] = [
   {
     id: 'color_pref',
@@ -78,7 +75,6 @@ interface Props {
 }
 
 export default function FollowUpQuestions({ occasion, onComplete, onSkip }: Props) {
-  // Check if body questions were already answered (stored in localStorage)
   const [savedProfile] = useState<Record<string, string>>(() => {
     try {
       const stored = localStorage.getItem('shopmate_profile');
@@ -88,7 +84,6 @@ export default function FollowUpQuestions({ occasion, onComplete, onSkip }: Prop
 
   const hasProfile = savedProfile.gender && savedProfile.size;
 
-  // Build question list: body questions (if new) + occasion + style
   const bodyQs = hasProfile ? [] : UNIVERSAL_QUESTIONS;
   const occasionQs = OCCASION_QUESTIONS[occasion] || OCCASION_QUESTIONS.casual;
   const styleQs = STYLE_QUESTIONS;
@@ -105,7 +100,6 @@ export default function FollowUpQuestions({ occasion, onComplete, onSkip }: Prop
     if (currentQ < allQuestions.length - 1) {
       setCurrentQ(currentQ + 1);
     } else {
-      // Save body profile for future searches
       if (!hasProfile) {
         const profile: Record<string, string> = {};
         UNIVERSAL_QUESTIONS.forEach(q => {
@@ -128,39 +122,44 @@ export default function FollowUpQuestions({ occasion, onComplete, onSkip }: Prop
         {allQuestions.map((_, i) => (
           <div
             key={i}
-            className={`flex-1 h-1.5 rounded-full transition-all duration-300 ${
-              i < currentQ ? 'bg-coral' : i === currentQ ? 'bg-coral animate-pulse-glow' : 'bg-border'
+            className={`flex-1 h-1 rounded-full transition-all duration-500 ${
+              i < currentQ
+                ? 'bg-gradient-to-r from-purple to-coral'
+                : i === currentQ
+                ? 'bg-purple animate-pulse-glow'
+                : 'bg-glass-border'
             }`}
           />
         ))}
       </div>
 
-      {/* Section label */}
+      {/* Profile setup notice */}
       {isBodyQ && currentQ === 0 && !hasProfile && (
-        <div className="mb-4 p-3 bg-lavender/10 rounded-2xl">
-          <p className="text-xs font-bold text-lavender">📋 Quick profile setup (one-time only)</p>
+        <div className="mb-5 p-4 glass-card border-purple/20 animate-scale-in">
+          <p className="text-xs font-semibold text-purple-light">📋 Quick profile setup (one-time only)</p>
           <p className="text-[10px] text-text-tertiary mt-1">Helps us recommend the right fit & size</p>
         </div>
       )}
 
-      {/* AI avatar + question bubble */}
-      <div className="flex items-start gap-3 mb-6">
-        <div className="w-11 h-11 bg-gradient-to-br from-coral to-coral-light rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0 shadow-md">
+      {/* AI avatar + question */}
+      <div className="flex items-start gap-3 mb-7">
+        <div className="w-11 h-11 bg-gradient-to-br from-purple to-coral rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0 shadow-lg shadow-purple/30" style={{ fontFamily: "'Space Grotesk'" }}>
           SM
         </div>
-        <div className="bg-white border border-border rounded-2xl rounded-tl-sm p-4 shadow-sm max-w-[80%]">
-          <p className="text-xs text-text-tertiary font-semibold mb-1">ShopMate AI</p>
-          <p className="text-base font-bold text-text leading-snug">{question.question}</p>
+        <div className="glass-card p-4 max-w-[80%] rounded-tl-sm">
+          <p className="text-[10px] text-text-tertiary font-semibold mb-1 uppercase tracking-wider">ShopMate AI</p>
+          <p className="text-[15px] font-semibold text-text leading-snug">{question.question}</p>
         </div>
       </div>
 
       {/* Options */}
-      <div className="space-y-2.5 mb-6">
-        {question.options.map(option => (
+      <div className="space-y-2.5 mb-7">
+        {question.options.map((option, i) => (
           <button
             key={option}
             onClick={() => handleAnswer(option)}
-            className="w-full p-3.5 bg-white border-2 border-border rounded-2xl text-left text-[15px] font-semibold text-text hover:border-coral hover:bg-coral-soft hover:text-coral transition-all active:scale-[0.98]"
+            className="w-full p-4 glass-card text-left text-[15px] font-medium text-text-secondary hover:text-text hover:bg-glass-strong hover:border-purple/30 hover:shadow-lg hover:shadow-purple/10 transition-all active:scale-[0.98] animate-slide-up"
+            style={{ animationDelay: `${i * 60}ms` }}
           >
             {option}
           </button>
@@ -170,14 +169,14 @@ export default function FollowUpQuestions({ occasion, onComplete, onSkip }: Prop
       {/* Skip */}
       <button
         onClick={onSkip}
-        className="w-full text-center text-sm text-text-tertiary font-semibold hover:text-coral transition-colors mb-3"
+        className="w-full text-center text-sm text-text-tertiary font-medium hover:text-purple-light transition-colors mb-4"
       >
         Skip remaining and show results →
       </button>
 
       {/* Progress text */}
       <p className="text-center text-xs text-text-tertiary">
-        {currentQ + 1} of {totalSteps} • {isBodyQ ? 'Setting up your profile' : 'Understanding your intent'}
+        {currentQ + 1} of {totalSteps} • {isBodyQ ? 'Setting up your profile' : 'Understanding your style'}
       </p>
     </div>
   );

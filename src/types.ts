@@ -4,10 +4,14 @@ export interface Product {
   category: string;
   price: number;
   image: string;
-  tags: string[];
-  occasion: string[];
+  link: string;
+  source: string;
   rating: number;
-  reviews_count: number;
+  delivery?: string;
+  // Legacy fields (for backward compat)
+  tags?: string[];
+  occasion?: string[];
+  reviews_count?: number;
 }
 
 export interface Bundle {
